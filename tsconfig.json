@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "types": [],
+    "paths": {
+      "@tapokjs/sdk/browser": ["./src/browser.ts"],
+      "@tapokjs/sdk/server": ["./src/server.ts"]
+    },
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true
+  },
+  "include": ["src/**/*.ts"]
+}

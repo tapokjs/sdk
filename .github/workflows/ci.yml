@@ -1,0 +1,43 @@
+name: package
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 26]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: { node-version: "${{ matrix.node }}" }
+      - run: npm install --global "bun@$(cat .bun-version)"
+      - uses: denoland/setup-deno@v2
+        with: { deno-version: v2.x }
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bun lint --no-script --max-warnings 0
+      - run: bun fmt --no-script --check
+      - run: bun audit
+      - name: Check installed release archive in Bun, Node and Deno
+        run: |
+          bun pm pack --ignore-scripts --destination "$RUNNER_TEMP"
+          mkdir "$RUNNER_TEMP/consumer"
+          printf '%s\n' '{"private":true,"type":"module"}' > "$RUNNER_TEMP/consumer/package.json"
+          npm install --prefix "$RUNNER_TEMP/consumer" --ignore-scripts --no-audit --no-fund "$RUNNER_TEMP"/*.tgz
+          cp test/package-consumer.mjs "$RUNNER_TEMP/consumer/smoke.mjs"
+          cd "$RUNNER_TEMP/consumer"
+          bun smoke.mjs
+          node smoke.mjs
+          deno run --node-modules-dir=manual smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: matrix.node == 22
+        with:
+          name: npm-package
+          path: ${{ runner.temp }}/*.tgz
+          retention-days: 14
